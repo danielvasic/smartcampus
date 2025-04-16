@@ -1,24 +1,3 @@
-{
-  "name": "smartcampus",
-  "version": "1.0.0",
-  "description": "Smart Campus - main app",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/danielvasic/smartcampus.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/danielvasic/smartcampus/issues"
-  },
-  "homepage": "https://github.com/danielvasic/smartcampus#readme",
-  "dependencies": {
-    "express": "^5.1.0",
-    "firebase-admin": "^13.2.0",
-    "mysql2": "^3.14.0"
-  }
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:5dd29c2a91a9638acdb90744c5a060aa4287c8eb4ba5cab541f9f55590debf6c
+size 1223
