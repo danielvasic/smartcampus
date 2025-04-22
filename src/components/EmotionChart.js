@@ -21,7 +21,7 @@ const EmotionChart = () => {
     return (
         <div className="emotion-chart-container">
             <div className="card-title compact">
-                <h2>EMOCIJE POSJETITELJA PRI ULASKU</h2>
+                <h2>EMOCIJE POSJETITELJA <br />PRI ULASKU</h2>
             </div>
             <div className="emotions-container compact">
                 {emotions.map((emotion) => (

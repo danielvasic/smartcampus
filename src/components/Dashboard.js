@@ -9,7 +9,7 @@ import AgeChart from './AgeChart';
 import GenderChart from './GenderChart';
 import AttendanceChart from './AttendanceChart';
 import EmotionChart from './EmotionChart';
-
+import HLSVideoPlayer from './HLSVideoPlayer';
 
 const Dashboard = ({ detectionData }) => {
     const [monthlyData, setMonthlyData] = useState([]);
@@ -19,6 +19,8 @@ const Dashboard = ({ detectionData }) => {
     const [selectedYear, setSelectedYear] = useState('all');
     const [selectedCamera, setSelectedCamera] = useState('all');
     const [totalPersons, setTotalPersons] = useState(0);
+
+    const streamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
 
     const COLORS = [
         '#f99a41', '#3f5a80', '#6f83a0', '#9facc0'
@@ -285,7 +287,7 @@ const Dashboard = ({ detectionData }) => {
                 <ParticipantCounter totalPersons={totalPersons} />
                 <AgeChart data={ageData} colors={COLORS} />
                 <GenderChart data={genderData} colors={COLORS} />
-                <AttendanceChart data={attendanceData} />
+                <HLSVideoPlayer streamUrl={streamUrl} />
             </div>
 
             {/* Donji dio - veliki grafovi u horizontalnom rasporedu */}
