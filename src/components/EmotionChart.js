@@ -6,17 +6,55 @@ import {
     faSmile,
     faMeh,
     faSurprise,
-    faFrown
+    faFrown,
+    faAngry
 } from '@fortawesome/free-solid-svg-icons';
 
-const EmotionChart = () => {
-    // Podaci o emocijama prema slici
-    const emotions = [
-        { name: 'Zadovoljni', value: 78, icon: faSmile, color: '#f7a14c' },
-        { name: 'Neutralni', value: 14, icon: faMeh, color: '#7fb9e6' },
-        { name: 'Iznenađeni', value: 4, icon: faSurprise, color: '#7fb9e6' },
-        { name: 'Ostale emocije', value: 4, icon: faFrown, color: '#7fb9e6' }
-    ];
+const EmotionChart = ({ data }) => {
+    // Mapiranje emocija s API-ja na ikone i imena
+    const emotionMapping = {
+        happy: { name: 'Zadovoljni', icon: faSmile, color: '#f7a14c' },
+        neutral: { name: 'Neutralni', icon: faMeh, color: '#7fb9e6' },
+        sad: { name: 'Tužni', icon: faFrown, color: '#7fb9e6' },
+        angry: { name: 'Ljuti', icon: faAngry, color: '#7fb9e6' }
+    };
+
+    // Izračunaj ukupan broj emocija
+    const totalEmotions = data.reduce((acc, item) => acc + item.value, 0);
+
+    // Transformiraj podatke iz API-ja u format koji odgovara komponentama
+    const formattedEmotions = data.map(item => {
+        const emotion = emotionMapping[item.name.toLowerCase()] || {
+            name: 'Ostale emocije',
+            icon: faSurprise,
+            color: '#7fb9e6'
+        };
+
+        // Izračunaj postotak
+        const percentage = totalEmotions > 0 ? Math.round((item.value / totalEmotions) * 100) : 0;
+
+        return {
+            name: emotion.name,
+            value: percentage,
+            rawValue: item.value,
+            icon: emotion.icon,
+            color: emotion.color
+        };
+    });
+
+    // Ako nema podataka, prikaži poruku
+    if (totalEmotions === 0) {
+        return (
+            <div className="emotion-chart-container">
+                <div className="card-title compact">
+                    <h2>EMOCIJE POSJETITELJA <br />PRI ULASKU</h2>
+                </div>
+                <div className="emotions-container compact" style={{ justifyContent: 'center', alignItems: 'center', height: '80%' }}>
+                    <p>Nema dostupnih podataka o emocijama.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="emotion-chart-container">
@@ -24,7 +62,7 @@ const EmotionChart = () => {
                 <h2>EMOCIJE POSJETITELJA <br />PRI ULASKU</h2>
             </div>
             <div className="emotions-container compact">
-                {emotions.map((emotion) => (
+                {formattedEmotions.map((emotion) => (
                     <div className="emotion-item" key={emotion.name}>
                         <FontAwesomeIcon
                             icon={emotion.icon}
@@ -44,6 +82,7 @@ const EmotionChart = () => {
                             {emotion.value}%
                         </div>
                         <div className="emotion-label">{emotion.name}</div>
+                        <div className="emotion-count">({emotion.rawValue})</div>
                     </div>
                 ))}
             </div>

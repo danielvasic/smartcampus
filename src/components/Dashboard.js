@@ -35,7 +35,30 @@ const Dashboard = ({ detectionData }) => {
     // Funkcija za dohvaćanje podataka s API-ja
     const fetchApiData = async () => {
         try {
-            console.log("Pozivam API:", 'http://cuda.sum.ba:8081/status');
+            console.log("Pozivam API...");
+            // Koristimo proxy za zaobilaženje CORS ograničenja
+            // Opcija 1: Koristimo CORS-anywhere kao proxy (privremeno rješenje)
+            // const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+            // const response = await fetch(`${proxyUrl}http://cuda.sum.ba:8081/status`);
+
+            // Opcija 2: Koristimo mock podatke dok se ne riješi CORS na serveru
+            // Simuliramo fetch poziv s mock podacima
+            console.log("Koristim mock podatke zbog CORS ograničenja");
+            // Simuliraj kašnjenje API poziva
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const mockData = {
+                "total_faces": 5,
+                "gender": { "Woman": 1, "Man": 4 },
+                "age_distribution": { "18-25": 2, "26-35": 3, "36-50": 0, "50+": 0 },
+                "emotions": { "happy": 0, "neutral": 3, "sad": 1, "angry": 0 }
+            };
+
+            console.log("Primljeni podaci:", mockData);
+            setApiData(mockData);
+            setTotalPersons(mockData.total_faces);
+
+            /* Kada se CORS problema riješi, ponovno uključiti ovaj kod:
             const response = await fetch('http://cuda.sum.ba:8081/status');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -44,6 +67,7 @@ const Dashboard = ({ detectionData }) => {
             console.log("Primljeni podaci s API-ja:", data);
             setApiData(data);
             setTotalPersons(data.total_faces);
+            */
         } catch (error) {
             console.error("Greška pri dohvaćanju API podataka:", error);
         }
