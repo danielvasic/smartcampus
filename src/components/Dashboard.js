@@ -25,6 +25,7 @@ const Dashboard = ({ detectionData }) => {
         age_distribution: { "18-25": 0, "26-35": 0, "36-50": 0, "50+": 0 },
         emotions: { happy: 0, neutral: 0, sad: 0, angry: 0 }
     });
+    const [lastUpdate, setLastUpdate] = useState(null);
 
     const streamUrl = "http://cuda.sum.ba:8888/person/video1_stream.m3u8";
 
@@ -35,57 +36,52 @@ const Dashboard = ({ detectionData }) => {
     // Funkcija za dohvaćanje podataka s API-ja
     const fetchApiData = async () => {
         try {
-            console.log("Pozivam API...");
-            // Koristimo proxy za zaobilaženje CORS ograničenja
-            // Opcija 1: Koristimo CORS-anywhere kao proxy (privremeno rješenje)
-            // const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-            // const response = await fetch(`${proxyUrl}http://cuda.sum.ba:8081/status`);
-
-            // Opcija 2: Koristimo mock podatke dok se ne riješi CORS na serveru
-            // Simuliramo fetch poziv s mock podacima
-            console.log("Koristim mock podatke zbog CORS ograničenja");
-            // Simuliraj kašnjenje API poziva
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            const mockData = {
-                "total_faces": 5,
-                "gender": { "Woman": 1, "Man": 4 },
-                "age_distribution": { "18-25": 2, "26-35": 3, "36-50": 0, "50+": 0 },
-                "emotions": { "happy": 0, "neutral": 3, "sad": 1, "angry": 0 }
-            };
-
-            console.log("Primljeni podaci:", mockData);
-            setApiData(mockData);
-            setTotalPersons(mockData.total_faces);
-
-            /* Kada se CORS problema riješi, ponovno uključiti ovaj kod:
-            const response = await fetch('http://cuda.sum.ba:8081/status');
+            console.log("Dohvaćam podatke sa servera...");
+            
+            // Direktno dohvaćamo podatke s API-ja
+            const apiUrl = 'http://cuda.sum.ba:8081/status';
+            
+            // Koristimo no-cors mode da zaobiđemo CORS ograničenja
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                // Koristimo opći headers da maksimiziramo kompatibilnost
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                // Ne koristimo kredencijale jer to može ograničiti zahtjeve
+                credentials: 'omit'
+            });
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+            
             const data = await response.json();
-            console.log("Primljeni podaci s API-ja:", data);
+            console.log("Uspješno dohvaćeni podaci:", data);
+            
             setApiData(data);
             setTotalPersons(data.total_faces);
-            */
+            setLastUpdate(new Date());
+            
         } catch (error) {
-            console.error("Greška pri dohvaćanju API podataka:", error);
+            console.error("Greška pri dohvaćanju podataka:", error);
         }
     };
 
     // Dohvati podatke s API-ja prilikom učitavanja komponente
     useEffect(() => {
         // Odmah dohvati podatke pri učitavanju
-        console.log("Dohvaćam početne podatke s API-ja");
+        console.log("Inicijalno dohvaćanje podataka sa servera");
         fetchApiData();
-
+        
         // Postavi interval za osvježavanje podataka svakih 30 sekundi
         console.log("Postavljam interval osvježavanja od 30 sekundi");
         const intervalId = setInterval(() => {
-            console.log("Osvježavam podatke s API-ja");
+            console.log("Osvježavam podatke sa servera");
             fetchApiData();
         }, 30000); // 30 sekundi
-
+        
         // Očisti interval kada se komponenta ukloni
         return () => {
             console.log("Čistim interval za dohvat podataka");
@@ -348,8 +344,31 @@ const Dashboard = ({ detectionData }) => {
         setSelectedCamera(e.target.value);
     };
 
+    // Formatiranje vremena zadnjeg ažuriranja
+    const formatLastUpdate = () => {
+        if (!lastUpdate) return '';
+        
+        const hours = lastUpdate.getHours().toString().padStart(2, '0');
+        const minutes = lastUpdate.getMinutes().toString().padStart(2, '0');
+        const seconds = lastUpdate.getSeconds().toString().padStart(2, '0');
+        
+        return `${hours}:${minutes}:${seconds}`;
+    };
+
     return (
         <div className="dashboard-new">
+            {/* Status osvježavanja */}
+            <div style={{ 
+                padding: '5px 10px', 
+                textAlign: 'right',
+                color: '#555',
+                fontSize: '0.9rem'
+            }}>
+                {lastUpdate ? 
+                    `Zadnje ažuriranje: ${formatLastUpdate()}` : 
+                    'Dohvaćanje podataka...'}
+            </div>
+
             {/* Gornji dio - mali widgeti posloženi u mrežu */}
             <div className="dashboard-top-cards">
                 <ParticipantCounter totalPersons={apiData.total_faces} />
