@@ -27,7 +27,7 @@ const Dashboard = ({ detectionData }) => {
     });
     const [lastUpdate, setLastUpdate] = useState(null);
 
-    const streamUrl = "http://cuda.sum.ba:8888/person/video1_stream.m3u8";
+    const streamUrl = "https://2fa5-212-39-115-105.ngrok-free.app/person/video1_stream.m3u8";
 
     const COLORS = [
         '#f99a41', '#3f5a80', '#6f83a0', '#9facc0'
