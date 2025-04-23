@@ -19,29 +19,55 @@ const Dashboard = ({ detectionData }) => {
     const [selectedYear, setSelectedYear] = useState('all');
     const [selectedCamera, setSelectedCamera] = useState('all');
     const [totalPersons, setTotalPersons] = useState(0);
+    const [apiData, setApiData] = useState({
+        total_faces: 0,
+        gender: { Woman: 0, Man: 0 },
+        age_distribution: { "18-25": 0, "26-35": 0, "36-50": 0, "50+": 0 },
+        emotions: { happy: 0, neutral: 0, sad: 0, angry: 0 }
+    });
 
-    const streamUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
+    const streamUrl = "http://cuda.sum.ba:8888/person/video1_stream.m3u8";
 
     const COLORS = [
         '#f99a41', '#3f5a80', '#6f83a0', '#9facc0'
     ];
 
-    const ageData = [
-        { name: '18-25', value: 25 },
-        { name: '26-35', value: 35 },
-        { name: '36-50', value: 20 },
-        { name: '50+', value: 8 }
-    ];
+    // Funkcija za dohvaćanje podataka s API-ja
+    const fetchApiData = async () => {
+        try {
+            console.log("Pozivam API:", 'http://cuda.sum.ba:8081/status');
+            const response = await fetch('http://cuda.sum.ba:8081/status');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log("Primljeni podaci s API-ja:", data);
+            setApiData(data);
+            setTotalPersons(data.total_faces);
+        } catch (error) {
+            console.error("Greška pri dohvaćanju API podataka:", error);
+        }
+    };
 
-    const genderData = [
-        { name: 'Muški', value: 60 },
-        { name: 'Ženski', value: 40 }
-    ];
-    const attendanceData = [
-        { name: '23.04.2025.', person: 543 },
-        { name: '24.04.2025.', person: 312 },
-        { name: '25.04.2025.', person: 142 },
-    ];
+    // Dohvati podatke s API-ja prilikom učitavanja komponente
+    useEffect(() => {
+        // Odmah dohvati podatke pri učitavanju
+        console.log("Dohvaćam početne podatke s API-ja");
+        fetchApiData();
+
+        // Postavi interval za osvježavanje podataka svakih 30 sekundi
+        console.log("Postavljam interval osvježavanja od 30 sekundi");
+        const intervalId = setInterval(() => {
+            console.log("Osvježavam podatke s API-ja");
+            fetchApiData();
+        }, 30000); // 30 sekundi
+
+        // Očisti interval kada se komponenta ukloni
+        return () => {
+            console.log("Čistim interval za dohvat podataka");
+            clearInterval(intervalId);
+        };
+    }, []);
 
     useEffect(() => {
         if (detectionData) {
@@ -67,10 +93,6 @@ const Dashboard = ({ detectionData }) => {
                 const monthlyStats = processMonthlyData(detectionData, selectedYear, selectedCamera);
                 const topObjects = findTopObjects(detectionData, selectedYear, selectedCamera);
 
-                // Izračunaj ukupan broj osoba
-                // const total = calculateTotalPersons(detectionData, selectedYear, selectedCamera);
-                // setTotalPersons(total);
-
                 setMonthlyData(monthlyStats);
                 setTopObjectsData(topObjects);
             } catch (error) {
@@ -78,6 +100,28 @@ const Dashboard = ({ detectionData }) => {
             }
         }
     }, [detectionData, selectedYear, selectedCamera]);
+
+    // Priprema podataka za prikaz iz API-ja
+    const prepareEmotionData = () => {
+        return Object.entries(apiData.emotions).map(([name, value]) => ({
+            name: name.charAt(0).toUpperCase() + name.slice(1), // Prvo slovo veliko
+            value
+        }));
+    };
+
+    const prepareGenderData = () => {
+        return [
+            { name: 'Muški', value: apiData.gender.Man },
+            { name: 'Ženski', value: apiData.gender.Woman }
+        ];
+    };
+
+    const prepareAgeData = () => {
+        return Object.entries(apiData.age_distribution).map(([name, value]) => ({
+            name,
+            value
+        }));
+    };
 
     // Funkcija za izračun ukupnog broja osoba
     const calculateTotalPersons = (data, year, camera) => {
@@ -284,21 +328,16 @@ const Dashboard = ({ detectionData }) => {
         <div className="dashboard-new">
             {/* Gornji dio - mali widgeti posloženi u mrežu */}
             <div className="dashboard-top-cards">
-                <ParticipantCounter totalPersons={totalPersons} />
-                <AgeChart data={ageData} colors={COLORS} />
-                <GenderChart data={genderData} colors={COLORS} />
+                <ParticipantCounter totalPersons={apiData.total_faces} />
+                <AgeChart data={prepareAgeData()} colors={COLORS} />
+                <GenderChart data={prepareGenderData()} colors={COLORS} />
                 <HLSVideoPlayer streamUrl={streamUrl} />
             </div>
 
             {/* Donji dio - veliki grafovi u horizontalnom rasporedu */}
             <div className="dashboard-main-cards">
                 <div className="card emotion-card">
-                    <EmotionChart data={[
-                        { name: 'Neutralni', value: 30 },
-                        { name: 'Iznenađeni', value: 15 },
-                        { name: 'Ostalo', value: 10 },
-                        { name: 'Sretni', value: 45 }
-                    ]} />
+                    <EmotionChart data={prepareEmotionData()} />
                 </div>
 
                 <div className="card chart-card">
